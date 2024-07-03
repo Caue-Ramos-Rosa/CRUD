@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Países</title>
+    <link rel="stylesheet" type="text/css" href="formulario.css">
+</head>
+<body>
+    <div>
+        <button type="button" onclick="exibirFormulario()">Cadastrar País</button>
+        <button type="button" onclick="exibirPaises()">Países Cadastrados</button>
+    </div>
+    <div>
+        <h1>Cadastro de Países</h1>
+        <p>Adicione os países que deseja conhecer:</p>
+    </div>
+    <form id="formCadastro" style="display: none;">
+        <fieldset>
+            <legend>Dados do País</legend>
+            <div>
+                <label for="nome">Nome do País:</label>
+                <input type="text" id="nome" name="nome" required>
+            </div>
+            <div>
+                <label for="continente">Continente:</label>
+                <input type="text" id="continente" name="continente" required>
+            </div>
+            <div>
+                <label for="lingua">Língua:</label>
+                <input type="text" id="lingua" name="lingua" required>
+            </div>
+            <div>
+                <label>Precisa de visto para entrar?</label>
+                <input type="radio" id="visto_sim" name="visto" value="sim" checked>
+                <label for="visto_sim">Sim</label>
+                <input type="radio" id="visto_nao" name="visto" value="nao">
+                <label for="visto_nao">Não</label>
+            </div>
+            <div>
+                <label>Moeda utilizada:</label>
+                <select id="moeda" name="moeda" required>
+                    <option value="dolar">Dólar</option>
+                    <option value="euro">Euro</option>
+                    <option value="real">Real</option>
+                    <option value="pesos">Pesos</option>
+                </select>
+            </div>
+            <div>
+                <label for="proposito">Vai viajar a:</label>
+                <select id="proposito" name="proposito" required>
+                    <option value="Trabalho">Trabalho</option>
+                    <option value="Passeio">Passeio</option>
+                    <option value="Visitar parentes">Visitar parentes</option>
+                </select>
+            </div>
+            <div>
+                <label>Selecione os meses de viagem:</label><br>
+                <input type="checkbox" id="janeiro" name="meses[]" value="janeiro">
+                <label for="janeiro">Janeiro</label>
+                <input type="checkbox" id="fevereiro" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Fevereiro</label>
+                <input type="checkbox" id="março" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Março</label>
+                <input type="checkbox" id="abril" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Abril</label>
+                <input type="checkbox" id="maio" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Maio</label>
+                <input type="checkbox" id="junho" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Junho</label>
+                <input type="checkbox" id="julho" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Julho</label>
+                <input type="checkbox" id="agosto" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Agosto</label>
+                <input type="checkbox" id="setembro" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Setembro</label>
+                <input type="checkbox" id="outubro" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Outubro</label>
+                <input type="checkbox" id="novembro" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Novembro</label>
+                <input type="checkbox" id="dezembro" name="meses[]" value="fevereiro">
+                <label for="fevereiro">Dezembro</label>
+                
+            </div>
+            <div>
+                <label for="pontos">Pontos a visitar:</label><br>
+                <textarea id="pontos" name="pontos" rows="4" cols="50"></textarea>
+            </div>
+            <button type="button" onclick="salvarPais()">Salvar</button>
+        </fieldset>
+    </form>
+    <div id="paisesCadastrados" style="display: none;">
+        <h2>Países Cadastrados</h2>
+        <div id="listaPaises"></div>
+    </div>
+    <script>
+        function exibirFormulario() {
+            document.getElementById('formCadastro').style.display = 'block';
+            document.getElementById('paisesCadastrados').style.display = 'none';
+        }
+
+        function exibirPaises() {
+            document.getElementById('formCadastro').style.display = 'none';
+            document.getElementById('paisesCadastrados').style.display = 'block';
+
+            fetch('http://localhost:8080/listar_paises')
+                .then(response => response.json())
+                .then(data => {
+                    const listaPaises = document.getElementById('listaPaises');
+                    listaPaises.innerHTML = '';
+
+                    data.forEach(pais => {
+                        const divPais = document.createElement('div');
+                        divPais.innerHTML = `
+                            <p><strong>Nome:</strong> ${pais.nome}</p>
+                            <p><strong>Continente:</strong> ${pais.continente}</p>
+                            <p><strong>Língua:</strong> ${pais.lingua}</p>
+                            <p><strong>Visto necessário:</strong> ${pais.visto}</p>
+                            <p><strong>Moeda:</strong> ${pais.moeda}</p>
+                            <p><strong>Propósito:</strong> ${pais.proposito}</p>
+                            <p><strong>Meses de viagem:</strong> ${pais.meses.join(', ')}</p>
+                            <p><strong>Pontos a visitar:</strong> ${pais.pontos}</p>
+                            <button onclick="editarPais(${pais.id})">Editar</button>
+                            <button onclick="excluirPais(${pais.id})">Excluir</button>
+                            <hr>
+                        `;
+                        listaPaises.appendChild(divPais);
+                    });
+                })
+                .catch(error => console.error('Erro ao listar países:', error));
+        }
+
+        function salvarPais() {
+            const form = document.getElementById('formCadastro');
+            const formData = new FormData(form);
+            const mesesSelecionados = formData.getAll('meses[]');
+
+            const dados = {
+                id: Date.now(),
+                nome: formData.get('nome'),
+                continente: formData.get('continente'),
+                lingua: formData.get('lingua'),
+                visto: formData.get('visto'),
+                moeda: formData.get('moeda'),
+                proposito: formData.get('proposito'),
+                meses: mesesSelecionados,
+                pontos: formData.get('pontos')
+            };
+
+            fetch('http://localhost:8080/salvar_pais', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data); // Exibe mensagem de sucesso ou erro
+                    form.reset(); // Limpa o formulário após salvar
+                    exibirPaises(); // Atualiza a lista de países
+                })
+                .catch(error => console.error('Erro ao salvar país:', error));
+        }
+
+        function editarPais(id) {
+            if (confirm('Você realmente deseja editar este país?')) {
+                fetch(`http://localhost:8080/listar_paises`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const pais = data.find(p => p.id === id);
+
+                        if (pais) {
+                            // Preenche o formulário com os dados do país
+                            document.getElementById('nome').value = pais.nome;
+                            document.getElementById('continente').value = pais.continente;
+                            document.getElementById('lingua').value = pais.lingua;
+                            document.querySelector(`input[name="visto"][value="${pais.visto}"]`).checked = true;
+                            document.getElementById('moeda').value = pais.moeda;
+                            document.getElementById('proposito').value = pais.proposito;
+
+                            // Limpa os checkboxes e depois seleciona os corretos
+                            document.querySelectorAll('input[name="meses[]"]').forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            pais.meses.forEach(mes => {
+                                document.querySelector(`input[name="meses[]"][value="${mes}"]`).checked = true;
+                            });
+
+                            document.getElementById('pontos').value = pais.pontos;
+
+                            // Mostra o formulário para edição
+                            exibirFormulario();
+
+                            // Substitui o botão "Salvar" para salvar as edições
+                            const salvarButton = document.querySelector('form button[type="button"]');
+                            salvarButton.textContent = 'Salvar Alterações';
+                            salvarButton.onclick = function() {
+                                salvarAlteracoes(id);
+                            };
+                        }
+                    })
+                    .catch(error => console.error('Erro ao carregar país para edição:', error));
+            }
+        }
+
+        function salvarAlteracoes(id) {
+            const form = document.getElementById('formCadastro');
+            const formData = new FormData(form);
+            const mesesSelecionados = formData.getAll('meses[]');
+
+            const dados = {
+                id: id,
+                nome: formData.get('nome'),
+                continente: formData.get('continente'),
+                lingua: formData.get('lingua'),
+                visto: formData.get('visto'),
+                moeda: formData.get('moeda'),
+                proposito: formData.get('proposito'),
+                meses: mesesSelecionados,
+                pontos: formData.get('pontos')
+            };
+
+            fetch(`http://localhost:8080/editar_pais?id=${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dados)
+            })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data); // Exibe mensagem de sucesso ou erro
+                    form.reset(); // Limpa o formulário após salvar
+                    exibirPaises(); // Atualiza a lista de países
+
+                    // Volta o botão "Salvar" ao estado original
+                    const salvarButton = document.querySelector('form button[type="button"]');
+                    salvarButton.textContent = 'Salvar';
+                    salvarButton.onclick = salvarPais;
+                })
+                .catch(error => console.error('Erro ao salvar alterações:', error));
+        }
+
+        function excluirPais(id) {
+            if (confirm('Você realmente deseja excluir este país?')) {
+                fetch(`http://localhost:8080/excluir_pais?id=${id}`, {
+                    method: 'DELETE'
+                })
+                    .then(response => response.text())
+                    .then(data => {
+                        alert(data); // Exibe mensagem de sucesso ou erro
+                        exibirPaises(); // Atualiza a lista de países
+                    })
+                    .catch(error => console.error('Erro ao excluir país:', error));
+            }
+        }
+    </script>
+</body>
+</html>
